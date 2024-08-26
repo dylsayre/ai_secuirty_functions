@@ -11,7 +11,7 @@ class Agent:
 
     def __init__(self):
         self.system_message = "You are a helpful AI Assistant asked to answer questions from a \
-            user using provided functions. Return TERMINATE when the task is done."
+            user using provided functions. return information from all relevant functions and only return information relevant to if the hash is malicious or not. Return TERMINATE when the task is done."
 
         self.user_proxy = autogen.UserProxyAgent(
             name = "user_proxy",
@@ -47,7 +47,7 @@ class Agent:
     def start(self, question: str) -> str:
         '''
         inititate chat
-        ''' 
+        '''
         resp = self.user_proxy.initiate_chat(self.assistant, message=question, 
                                              silent=False, clear_history=True)
 
