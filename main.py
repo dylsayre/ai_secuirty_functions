@@ -10,14 +10,14 @@ class Agent:
     '''
 
     def __init__(self):
-        self.system_message = "You are a helpful AI Assistant asked to answer questions from a \
-            user using provided functions. return information from all relevant functions and only return information relevant to if the hash is malicious or not. Return TERMINATE when the task is done."
+        sys_prompt = open(r"prompts\system.md", "r", encoding="utf-8")
+        self.system_message = sys_prompt.read()
 
         self.user_proxy = autogen.UserProxyAgent(
             name = "user_proxy",
             human_input_mode = "NEVER",
             max_consecutive_auto_reply = 10,
-            is_termination_msg = lambda msg: msg.get("content") is not None 
+            is_termination_msg = lambda msg: msg.get("content") is not None
             and "TERMINATE" in msg["content"],
             code_execution_config = False
         )
@@ -48,7 +48,7 @@ class Agent:
         '''
         inititate chat
         '''
-        resp = self.user_proxy.initiate_chat(self.assistant, message=question, 
+        resp = self.user_proxy.initiate_chat(self.assistant, message=question,
                                              silent=False, clear_history=True)
 
         return resp.summary
@@ -56,5 +56,5 @@ class Agent:
 if __name__ == "__main__":
     load_dotenv()
     agent = Agent()
-    answer = agent.start("can you provide me information on the hash: 178ba564b39bd07577e974a9b677dfd86ffa1f1d0299dfd958eb883c5ef6c3e1")
+    answer = agent.start("can you provide me information on 20.141.128.18")
     print(answer)

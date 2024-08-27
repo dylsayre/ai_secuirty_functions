@@ -4,6 +4,7 @@ from typing import Annotated
 from autogen import register_function
 import requests
 from dotenv import load_dotenv
+import shodan
 
 
 
@@ -32,6 +33,13 @@ def register_functions(assistant, user_proxy):
         caller = assistant,
         executor = user_proxy,
         description = "given a hash, return the hash type (sha1, sha256, or md5)"
+    )
+
+    register_function(
+        shodan_ip_lookup,
+        caller = assistant,
+        executor = user_proxy,
+        description = "given an IP Address, return the details of the IP Address from Shodan"
     )
 
 
@@ -70,6 +78,10 @@ def circl_get_hash(hashn: Annotated[str, "Hash Value for checking the hash infor
     load_dotenv()
     hash_id = hashn
     headers = {"accept": "application/json"}
-    r = requests.get(f"https://hashlookup.circl.lu/lookup/{hash_type}/{hash_id}", 
+    r = requests.get(f"https://hashlookup.circl.lu/lookup/{hash_type}/{hash_id}",
                      headers=headers, timeout=600)
     return r.json()
+
+def shodan_ip_lookup(ipaddr: Annotated[str, "IP Address for searching the Shodan database"]) -> json:
+    shodan_api = shodan.Shodan(os.environ.get("SHODAN_API_KEY"))
+    return shodan_api.host(ipaddr)
