@@ -56,5 +56,5 @@ class Agent:
 if __name__ == "__main__":
     load_dotenv()
     agent = Agent()
-    answer = agent.start("is fb.me/use-check-prop-types malicious")
+    answer = agent.start("is mtb.com bad")
     print(answer)

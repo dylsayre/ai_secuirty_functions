@@ -93,7 +93,12 @@ def shodan_ip_lookup(ipaddr: Annotated[str, "IP Address for searching the Shodan
     '''
 
     shodan_api = shodan.Shodan(os.environ.get("SHODAN_API_KEY"))
-    return shodan_api.host(ipaddr)
+    info = shodan_api.host(ipaddr)
+
+    if info['data']:
+        return info['data']
+    else:
+        return "No data found, possible API issue."
 
 def urlscan_url_lookup(url: Annotated[str, "URL or domain to search in URLScan"]) -> json:
     '''
