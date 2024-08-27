@@ -111,8 +111,13 @@ def urlscan_url_lookup(url: Annotated[str, "URL or domain to search in URLScan"]
                                     headers=headers, timeout=60)
 
             if get_scan.status_code == 200:
-                break
-            time.sleep(2)
-
-        return get_scan.json()['verdicts']
+                data = []
+                data.append(get_scan.json()['lists'])
+                data.append(get_scan.json()['verdicts'])
+                return data
+            elif get_scan.status_code == 404:
+                time.sleep(2)
+            else:
+                return "Status code other than 200 or 404, \
+                    which indicates there is an issue with the API"
     
