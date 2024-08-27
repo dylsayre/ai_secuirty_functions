@@ -1,9 +1,9 @@
 import os
 import json
+import time
 from typing import Annotated
 from autogen import register_function
 import requests
-from dotenv import load_dotenv
 import shodan
 
 
@@ -39,7 +39,14 @@ def register_functions(assistant, user_proxy):
         shodan_ip_lookup,
         caller = assistant,
         executor = user_proxy,
-        description = "given an IP Address, return the details of the IP Address from Shodan"
+        description = "given an IP Address, return the details of the IP Address from Shodan.io"
+    )
+
+    register_function(
+        urlscan_url_lookup,
+        caller = assistant,
+        executor = user_proxy,
+        description = "given a URL or domain, return the details of the analysis done by URLScan.io"
     )
 
 
@@ -48,7 +55,6 @@ def vt_get_hash(hashn: Annotated[str, "Hash Value for checking the hash informat
     Function call to get hash information from Virustotal to use in autogen AI
     '''
 
-    load_dotenv()
     hash_id = hashn
     headers = {"accept": "application/json",
                "x-apikey": os.environ.get("VT_API_KEY")
@@ -75,7 +81,6 @@ def circl_get_hash(hashn: Annotated[str, "Hash Value for checking the hash infor
     Function call to get hash information from Virustotal to use in autogen AI
     '''
 
-    load_dotenv()
     hash_id = hashn
     headers = {"accept": "application/json"}
     r = requests.get(f"https://hashlookup.circl.lu/lookup/{hash_type}/{hash_id}",
@@ -83,5 +88,31 @@ def circl_get_hash(hashn: Annotated[str, "Hash Value for checking the hash infor
     return r.json()
 
 def shodan_ip_lookup(ipaddr: Annotated[str, "IP Address for searching the Shodan database"]) -> json:
+    '''
+    Using the Shodan API pull back information about a specific IP Address. 
+    '''
+
     shodan_api = shodan.Shodan(os.environ.get("SHODAN_API_KEY"))
     return shodan_api.host(ipaddr)
+
+def urlscan_url_lookup(url: Annotated[str, "URL or domain to search in URLScan"]) -> json:
+    '''
+    Used to lookup a URL in URLScan.io
+    '''
+    headers = {'API-Key':os.environ.get("URLSCAN_API_KEY"),'Content-Type':'application/json'}
+    data = {"url": f"{url}", "visibility": "public"}
+    r = requests.post('https://urlscan.io/api/v1/scan/',headers=headers,
+                    data=json.dumps(data), timeout=600)
+    if r.json()['message'] == "Submission successful":
+        time.sleep(10)
+
+        while True:
+            get_scan = requests.get(f"https://urlscan.io/api/v1/result/{r.json()['uuid']}/",
+                                    headers=headers, timeout=60)
+
+            if get_scan.status_code == 200:
+                break
+            time.sleep(2)
+
+        return get_scan.json()['verdicts']
+    

@@ -56,5 +56,5 @@ class Agent:
 if __name__ == "__main__":
     load_dotenv()
     agent = Agent()
-    answer = agent.start("can you provide me information on 20.141.128.18")
+    answer = agent.start("is 172.67.129.35 malicious")
     print(answer)
